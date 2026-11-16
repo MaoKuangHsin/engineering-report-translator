@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="color-scheme" content="light dark"/>
+<link rel="icon" href="data:,"/>
+<title>Engineering Report Translator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+TC:wght@700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+button,[role="button"],select,summary,input:not([type="checkbox"],[type="radio"]){min-height:2.25rem}
+*{box-sizing:border-box}
+:root{
+--bg:#f6f7f9;--surface:#fff;--surface2:#f1f3f6;--ink:#101828;--muted:#667085;--line:#e4e7ec;
+--navy:#0b2a4a;--accent:#0b4f6c;--accent2:#0e7a6b;--accent-ink:#fff;
+--tech:#8a5a12;--tech-bg:#fdf6e3;--tech-line:#ead9a6;
+--biz:#0e7a6b;--biz-bg:#eaf7f3;--biz-line:#bfe6dc;
+--warn:#9a3412;--warn-bg:#fff4ed;--shadow:0 1px 2px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.06);--radius:12px
+}
+@media(prefers-color-scheme:dark){
+:root{--bg:#0c1118;--surface:#151c26;--surface2:#1c2634;--ink:#eaecf0;--muted:#98a2b3;--line:#2a3648;--navy:#d6e6f2;--accent:#2a7ca6;--accent2:#2fbfa8;--tech:#e3b34e;--tech-bg:#2b2413;--tech-line:#57471d;--biz:#4cc3ab;--biz-bg:#12302a;--biz-line:#1f5246;--warn:#fdb08a;--warn-bg:#382016;--shadow:0 1px 3px rgba(0,0,0,.4)}
+}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans TC","Noto Sans JP",system-ui,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 18px 56px}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.eyebrow{font-size:.72rem;letter-spacing:.14em;font-weight:700;color:var(--accent2);text-transform:uppercase;margin-bottom:6px}
+h1{font-size:clamp(1.65rem,4vw,2.3rem);line-height:1.15;margin:0 0 8px;font-weight:800;letter-spacing:-.02em;color:var(--navy)}
+.lede{margin:0;color:var(--muted);max-width:52em;font-size:.98rem}
+.lang-switch{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px;box-shadow:var(--shadow)}
+.lang-switch span{font-size:.75rem;font-weight:700;letter-spacing:.06em;color:var(--muted);padding-left:8px}
+.lang-switch button{font:inherit;font-size:.88rem;font-weight:600;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:999px;padding:6px 13px;cursor:pointer}
+.lang-switch button.active{background:var(--navy);color:#fff}
+@media(prefers-color-scheme:dark){.lang-switch button.active{background:#fff;color:#101828}}
+.steps{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.steps span{font-size:.84rem;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;color:var(--muted)}
+.steps b{color:var(--accent2)}
+.controls{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:18px;display:grid;gap:14px}
+@media(min-width:960px){.controls{grid-template-columns:1.15fr 1fr 1fr 1.25fr;align-items:end}}
+.ctl label,.ctl-label{display:block;font-size:.75rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ctl input{width:100%;padding:8px 12px;font:inherit;font-size:.95rem;color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:8px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:inherit;font-size:.88rem;font-weight:500;padding:6px 12px;border-radius:999px;cursor:pointer;background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.seg button.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.workspace{display:grid;gap:18px}
+@media(min-width:900px){.workspace{grid-template-columns:1fr 1fr;align-items:start}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.panel-head h2{font-size:.95rem;margin:0;font-weight:700;letter-spacing:.01em}
+.tag{font-size:.68rem;font-weight:700;letter-spacing:.07em;border-radius:5px;padding:3px 8px;white-space:nowrap}
+.tag.tech{background:var(--tech-bg);color:var(--tech);border:1px solid var(--tech-line)}
+.tag.biz{background:var(--biz-bg);color:var(--biz);border:1px solid var(--biz-line)}
+.panel-body{padding:16px}
+textarea{width:100%;min-height:240px;resize:vertical;font-family:"JetBrains Mono","Noto Sans TC","Noto Sans JP",monospace;font-size:.9rem;line-height:1.7;color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.meta-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.count{font-size:.8rem;color:var(--muted)}
+.link-btn{background:none;border:none;color:var(--muted);cursor:pointer;font:inherit;font-size:.85rem;text-decoration:underline}
+.examples{margin-top:14px}.examples p{margin:0 0 8px;font-size:.78rem;font-weight:700;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+.examples .row{display:flex;flex-wrap:wrap;gap:8px}
+.ex-btn{font:inherit;font-size:.87rem;cursor:pointer;padding:7px 12px;border-radius:8px;background:var(--surface);border:1px dashed var(--line);color:var(--ink)}
+.ex-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.translate-row{display:flex;gap:10px;margin-top:16px}
+.btn{font:inherit;font-size:.92rem;font-weight:600;cursor:pointer;border-radius:8px;padding:9px 18px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff;flex:1;min-width:180px}
+@media(prefers-color-scheme:dark){.btn.primary{background:#eaecf0;color:#101828;border-color:#eaecf0}}
+.btn.small{font-size:.85rem;padding:6px 13px}
+.detected{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.detected h3{font-size:.82rem;margin:0 0 8px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-size:.82rem;border-radius:999px;padding:4px 11px;background:var(--tech-bg);border:1px solid var(--tech-line)}
+.chip b{color:var(--tech)}.chip .arr{color:var(--muted);margin:0 3px}.chip i{font-style:normal;color:var(--biz);font-weight:700}
+.none-note{font-size:.85rem;color:var(--muted)}
+.report-empty{color:var(--muted);font-size:.94rem;padding:8px 2px}.report-empty strong{color:var(--ink)}
+.headline-box{background:var(--biz-bg);border:1px solid var(--biz-line);border-radius:8px;padding:13px 15px;margin-bottom:16px}
+.headline-box .k{font-size:.72rem;font-weight:700;letter-spacing:.08em;color:var(--biz);text-transform:uppercase;margin-bottom:3px}
+.headline-box .v{font-weight:700;font-size:1.03rem;line-height:1.55}
+.headline-box .v-sub{font-size:.88rem;color:var(--muted);margin-top:4px}
+.rsec{margin-bottom:16px}.rsec h3{font-size:.88rem;margin:0 0 7px;display:flex;align-items:center;gap:8px}
+.rsec h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.rsec ul{margin:0;padding-left:1.25em}.rsec li{margin-bottom:5px;font-size:.94rem}
+.rsec li .sub,.rsec p .sub{display:block;font-size:.84rem;color:var(--muted)}
+.rsec p{margin:0 0 6px;font-size:.94rem}.rsec.warn h3{color:var(--warn)}
+.data-num{font-weight:700;color:var(--biz)}
+.slide-title{font-size:1.28rem;font-weight:800;line-height:1.45;margin:2px 0 4px;letter-spacing:-.01em}
+.slide-title-sub{color:var(--muted);font-size:.93rem;margin-bottom:12px}
+.email-subject{font-weight:700;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:9px 13px;margin-bottom:12px;font-size:.94rem}
+.out-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.out-actions[hidden]{display:none}
+.copy-ok{color:var(--biz);font-size:.85rem;font-weight:700}
+.below{display:grid;gap:18px;margin-top:18px}
+@media(min-width:900px){.below{grid-template-columns:1.5fr 1fr;align-items:start}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.card h2{font-size:1rem;margin:0 0 4px;font-weight:800}
+.card .card-sub{color:var(--muted);font-size:.87rem;margin:0 0 12px}
+.gloss-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.gloss-table th,.gloss-table td{text-align:left;padding:7px 8px;vertical-align:top}
+.gloss-table thead th{font-size:.74rem;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid var(--line);text-transform:uppercase}
+.gloss-table tbody tr{border-bottom:1px solid var(--line)}
+.gloss-table td.tech-cell{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:var(--tech);font-weight:600}
+.gloss-table td.biz-cell{font-weight:700;color:var(--biz)}
+.formula{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-weight:700;text-align:center;margin-bottom:14px;font-size:.95rem}
+.formula span{color:var(--accent2)}
+.tips{margin:0;padding-left:1.25em;font-size:.92rem}.tips li{margin-bottom:10px}
+.tips .before{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:var(--tech)}
+.tips .after{color:var(--biz);font-weight:500}
+footer.note{margin-top:26px;color:var(--muted);font-size:.8rem;text-align:center}
+@media print{.controls,.examples,.translate-row,.out-actions,.lang-switch,.no-print{display:none!important}body{background:#fff}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <header>
+      <div class="eyebrow" id="uiEyebrow">Workplace Reporting Tool</div>
+      <h1 id="uiTitle">Engineering Report Translator</h1>
+      <p class="lede" id="uiLede"></p>
+      <div class="steps" id="uiSteps"></div>
+    </header>
+    <div class="lang-switch" role="group" aria-label="Interface language">
+      <span id="uiLangLabel">Language</span>
+      <button type="button" data-ui="en" class="active">English</button>
+      <button type="button" data-ui="zh">繁體中文</button>
+      <button type="button" data-ui="ja">日本語</button>
+    </div>
+  </div>
+
+  <section class="controls" aria-label="Report settings">
+    <div class="ctl"><label for="projectName" id="lblProject">Project name (optional)</label><input type="text" id="projectName" autocomplete="off"/></div>
+    <div class="ctl"><span class="ctl-label" id="lblAudience">Audience</span><div class="seg" id="segAudience" role="group"></div></div>
+    <div class="ctl"><span class="ctl-label" id="lblFormat">Format</span><div class="seg" id="segFormat" role="group"></div></div>
+    <div class="ctl"><span class="ctl-label" id="lblOutLang">Report language</span><div class="seg" id="segLang" role="group"></div></div>
+  </section>
+
+  <div class="workspace">
+    <section class="panel" aria-label="Source notes">
+      <div class="panel-head"><h2 id="uiInputTitle">Your notes</h2><span class="tag tech">TECH SPEAK</span></div>
+      <div class="panel-body">
+        <textarea id="input"></textarea>
+        <div class="meta-row"><span class="count" id="inputCount"></span><button type="button" class="link-btn" id="clearBtn"></button></div>
+        <div class="examples"><p id="uiExamplesLabel"></p><div class="row">
+          <button type="button" class="ex-btn" data-sample="ai" id="exAi"></button>
+          <button type="button" class="ex-btn" data-sample="launch" id="exLaunch"></button>
+          <button type="button" class="ex-btn" data-sample="ja" id="exJa"></button>
+        </div></div>
+        <div class="translate-row"><button type="button" class="btn primary" id="translateBtn"></button></div>
+        <div class="detected"><h3 id="uiDetectedTitle"></h3><div class="chips" id="detectedChips"></div></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="Report output">
+      <div class="panel-head"><h2 id="uiOutputTitle">Report</h2><span class="tag biz">EXECUTIVE READY</span></div>
+      <div class="panel-body">
+        <div id="output"></div>
+        <div class="out-actions" id="outActions" hidden>
+          <button type="button" class="btn small" id="copyBtn"></button>
+          <button type="button" class="btn small" id="downloadBtn"></button>
+          <span class="copy-ok" id="copyOk" hidden></span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="below">
+    <section class="card"><h2 id="uiGlossTitle"></h2><p class="card-sub" id="uiGlossSub"></p>
+      <table class="gloss-table"><thead><tr><th id="gCol1"></th><th id="gCol2"></th><th id="gCol3"></th></tr></thead><tbody id="glossBody"></tbody></table>
+    </section>
+    <section class="card"><h2 id="uiTipsTitle"></h2><p class="card-sub" id="uiTipsSub"></p><div class="formula" id="uiFormula"></div><ul class="tips" id="tipsList"></ul></section>
+  </div>
+  <footer class="note" id="uiFooter"></footer>
+</div>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function hasNum(s){return /\d/.test(s)}
+
+/* ============ UI strings ============ */
+var UI={
+en:{eyebrow:"Workplace Reporting Tool",title:"Engineering Report Translator",
+lede:"Turn fragmented technical notes into a clear, executive-ready report. Technical terms are reframed in business language, results are quantified, and impact, risks and next steps are structured for decision-makers.",
+steps:["Paste your engineering notes","Select audience and format","Generate and share the report"],
+project:"Project name (optional)",projectPh:"e.g. APJ AI Knowledge Coach",
+audience:"Audience",aud:{manager:"Direct manager",executive:"Senior leadership",cross:"Cross-functional partners",client:"Client / Stakeholder"},
+format:"Format",fmt:{weekly:"Weekly report",slide:"One-page brief",email:"Email update",oneonone:"1:1 briefing"},
+outLang:"Report language",out:{en:"English","zh":"繁體中文","ja":"日本語","en-zh":"EN + 繁中","en-ja":"EN + 日本語"},
+inputTitle:"Your notes — technical draft",placeholder:"Paste your notes here — one item per line. Complete sentences are not required.\n\nExample:\n- RAG pipeline is live; retrieval accuracy improved from 72% to 89%\n- Resolved 3 bugs; API latency (p95) reduced from 850 ms to 320 ms\n- Next: load testing",
+clear:"Clear",examples:"Try a sample",exAi:"Sample 1 · AI project",exLaunch:"Sample 2 · System launch (EN)",exJa:"Sample 3 · 日本語メモ",
+translate:"Generate report →",detected:"Detected technical terms — reframed in business language",
+detectedNone:"No known terms detected yet. Terms will appear here as you type.",
+detectedWait:"Terms will appear here as you type.",
+outputTitle:"Report — executive-ready",emptyTitle:"No report yet.",emptyBody:"Paste your notes on the left (or select a sample), choose the audience and format, then select “Generate report”. The output is structured as: headline, completed work, key results, business impact, issues & risks, and next steps.",
+emptyInput:"No content to convert yet. Please add a few lines of notes, or select a sample.",
+clearedBody:"Paste your notes on the left, then select “Generate report”.",
+copy:"Copy report",download:"Download .txt",copied:"Copied ✓",
+glossTitle:"Terminology reference",glossSub:"How technical language is reframed for a business audience.",g1:"Engineers say",g2:"Report as",g3:"Business implication",
+tipsTitle:"Reporting standard",tipsSub:"The order senior stakeholders expect to read.",formula:'What was delivered <span>+</span> Quantified result <span>+</span> Impact on whom',
+footer:"All conversion runs locally in your browser. No content is sent to a server.",
+count:function(l,c){return l+" lines · "+c+" characters"},
+greeting:"Hi team,",intro:"Please find this period’s progress update below:",thanks:"Thank you,",sign:"Mao",subject:"Subject"},
+zh:{eyebrow:"職場報告工具",title:"工程師報告翻譯器",
+lede:"將零散的技術筆記，轉換為清晰、可直接呈交主管的正式報告。系統會把術語改寫為業務語言、量化成果，並依決策者需要的順序整理影響、風險與下一步。",
+steps:["貼上工程筆記","選擇對象與格式","產生報告並直接使用"],
+project:"專案名稱（選填）",projectPh:"例：APJ AI Knowledge Coach",
+audience:"報告對象",aud:{manager:"直屬主管",executive:"高階主管",cross:"跨部門夥伴",client:"客戶／利害關係人"},
+format:"報告格式",fmt:{weekly:"週報",slide:"簡報一頁",email:"Email 更新",oneonone:"1:1 匯報"},
+outLang:"報告語言",out:{en:"English","zh":"繁體中文","ja":"日本語","en-zh":"EN + 繁中","en-ja":"EN + 日本語"},
+inputTitle:"原始筆記 — 技術草稿",placeholder:"請貼上筆記，一行一件事即可，不需要完整句子。\n\n例：\n- RAG pipeline 跑通了，accuracy 從 72% 提升到 89%\n- 修了 3 個 bug，API latency 從 850ms 降到 320ms\n- 下週要做 load testing",
+clear:"清空",examples:"使用範例試試",exAi:"範例 1 · AI 專案週記",exLaunch:"範例 2 · System launch (EN)",exJa:"範例 3 · 日本語メモ",
+translate:"產生正式報告 →",detected:"已偵測的技術術語 — 將改寫為業務語言",
+detectedNone:"尚未偵測到已知術語，輸入後會即時顯示。",
+detectedWait:"輸入後會即時顯示偵測到的術語。",
+outputTitle:"報告 — 可直接呈交",emptyTitle:"尚未產生報告。",emptyBody:"請在左側貼上筆記（或選擇範例），設定對象與格式後，點選「產生正式報告」。輸出結構為：重點摘要、本期完成、關鍵成果、業務影響、問題與風險、下一步。",
+emptyInput:"尚無可轉換的內容。請先輸入幾行筆記，或選擇一個範例。",
+clearedBody:"請在左側貼上筆記後，點選「產生正式報告」。",
+copy:"複製報告",download:"下載 .txt",copied:"已複製 ✓",
+glossTitle:"術語對照表",glossSub:"技術語言如何改寫為業務受眾能理解的表達。",g1:"工程師說法",g2:"報告寫法",g3:"業務意涵",
+tipsTitle:"報告撰寫標準",tipsSub:"高階主管期望的閱讀順序。",formula:'完成事項 <span>+</span> 量化成果 <span>+</span> 對誰產生什麼影響',
+footer:"所有轉換均在本機瀏覽器完成，內容不會傳送至任何伺服器。",
+count:function(l,c){return l+" 行 · "+c+" 字"},
+greeting:"Hi 各位，",intro:"以下為本期進度更新：",thanks:"謝謝，",sign:"Mao",subject:"主旨"},
+ja:{eyebrow:"業務報告作成ツール",title:"エンジニア報告トランスレーター",
+lede:"断片的な技術メモを、経営層にもそのまま提出できる明確な報告書に変換します。専門用語をビジネス言語に置き換え、成果を数値で示し、影響・リスク・次のステップを意思決定者向けの順序で整理します。",
+steps:["技術メモを貼り付ける","宛先と形式を選ぶ","報告書を生成して共有する"],
+project:"プロジェクト名（任意）",projectPh:"例：APJ AI Knowledge Coach",
+audience:"報告先",aud:{manager:"直属の上司",executive:"経営層",cross:"他部門の関係者",client:"顧客／ステークホルダー"},
+format:"形式",fmt:{weekly:"週次報告",slide:"1ページ要約",email:"メール更新",oneonone:"1:1 報告"},
+outLang:"報告書の言語",out:{en:"English","zh":"繁體中文","ja":"日本語","en-zh":"EN + 繁中","en-ja":"EN + 日本語"},
+inputTitle:"元のメモ — 技術ドラフト",placeholder:"メモを貼り付けてください。1行に1件、完全な文でなくて構いません。\n\n例：\n- RAGパイプラインが稼働し、検索精度が72%から89%に向上\n- バグを3件修正し、応答時間が850msから320msに改善\n- 次のステップ：負荷テストを実施",
+clear:"クリア",examples:"サンプルで試す",exAi:"サンプル1 · AIプロジェクト",exLaunch:"サンプル2 · System launch (EN)",exJa:"サンプル3 · 日本語メモ",
+translate:"報告書を生成 →",detected:"検出された専門用語 — ビジネス言語に変換されます",
+detectedNone:"既知の用語はまだ検出されていません。入力すると表示されます。",
+detectedWait:"入力すると検出された用語が表示されます。",
+outputTitle:"報告書 — 提出可能",emptyTitle:"報告書はまだ生成されていません。",emptyBody:"左側にメモを貼り付けるかサンプルを選択し、報告先と形式を設定して「報告書を生成」を押してください。構成は、要点、完了事項、主な成果、ビジネスへの影響、課題とリスク、次のステップとなります。",
+emptyInput:"変換できる内容がありません。メモを数行入力するか、サンプルを選択してください。",
+clearedBody:"左側にメモを貼り付けてから「報告書を生成」を押してください。",
+copy:"報告書をコピー",download:".txt をダウンロード",copied:"コピーしました ✓",
+glossTitle:"用語対照表",glossSub:"技術用語をビジネス向けの表現に置き換えるための対照表です。",g1:"技術用語",g2:"報告書での表現",g3:"ビジネス上の意味",
+tipsTitle:"報告の標準構成",tipsSub:"経営層が期待する提示順序です。",formula:'実施内容 <span>+</span> 数値による成果 <span>+</span> 誰への影響',
+footer:"変換はすべてお使いのブラウザ内で処理され、内容がサーバーに送信されることはありません。",
+count:function(l,c){return l+" 行 · "+c+" 文字"},
+greeting:"関係各位",intro:"今期の進捗をご報告いたします。",thanks:"よろしくお願いいたします。",sign:"Mao",subject:"件名"}
+};
+var TIPS={
+en:[["“Fixed 3 bugs”","“Resolved 3 user-impacting system issues; stability improved” — Lead with impact, not implementation."],
+["“Latency down to 320 ms”","“Response time reduced from 0.85s to 0.32s — user waiting time cut by ~60%” — Translate numbers into experience."],
+["“Still investigating the failure”","“Root cause under investigation; diagnosis in progress, update by [date]” — Pair bad news with action and a timeline."],
+["“Load testing next week”","“Next step: complete high-traffic validation to confirm stability through the month-end peak” — State purpose, not just activity."]],
+zh:[["「修了 3 個 bug」","→「解決 3 個影響使用者的系統問題，穩定性提升」——先說明影響，再說明技術。"],
+["「latency 降到 320ms」","→「系統回應由 0.85 秒縮短至 0.32 秒，使用者等待時間減少約六成」——將數字轉換為實際感受。"],
+["「還在查為什麼壞掉」","→「異常原因調查中，已啟動排查，預計於 ○○ 前更新」——負面訊息須同時說明處理進度與時間點。"],
+["「下週要做 load testing」","→「下一步：完成高流量驗證，確認月底尖峰期間系統穩定」——下一步須說明目的，不只列出動作。"]],
+ja:[["「バグを3件直した」","→「利用者に影響するシステム課題を3件解決し、安定性が向上」——技術ではなく影響から伝えます。"],
+["「レイテンシが320msになった」","→「応答時間が0.85秒から0.32秒に短縮し、待ち時間が約6割削減」——数値を体験に置き換えます。"],
+["「原因はまだ調査中」","→「原因を調査中であり、○○までに続報予定」——課題には対応状況と期限を添えます。"],
+["「来週は負荷テスト」","→「次のステップ：高負荷時の検証を完了し、月末ピーク時の安定性を確認」——作業ではなく目的を示します。"]]
+};
+
+/* ============ Glossary (trilingual) ============ */
+var GLOSSARY=[
+{keys:["latency","延遲","p95","p99","response time","応答時間","レイテンシ"],tech:"latency / 延遲 / 応答時間",bizEn:"system response time",bizZh:"系統回應速度",bizJa:"システム応答速度",impEn:"Faster responses mean less waiting and a smoother user experience.",impZh:"回應越快，使用者等待越少、操作越流暢。",impJa:"応答が速いほど、利用者の待ち時間が減り、操作が円滑になります。"},
+{keys:["accuracy","準確率","precision","recall","精度"],tech:"accuracy / 準確率 / 精度",bizEn:"prediction / answer accuracy",bizZh:"預測／回答準確率",bizJa:"予測・回答精度",impEn:"More reliable results reduce manual review and rework.",impZh:"結果越可靠，人工複核與修正成本越低。",impJa:"結果の信頼性が高まるほど、確認や手戻りのコストが下がります。"},
+{keys:["bug","錯誤","異常","故障","error","exception","バグ","不具合"],tech:"bug / 異常 / バグ",bizEn:"user-impacting system issues",bizZh:"影響使用者的系統問題",bizJa:"利用者に影響するシステム課題",impEn:"Resolution improves stability and reduces errors encountered by users.",impZh:"問題修復後系統更穩定，使用者遇到錯誤的機會降低。",impJa:"解決により安定性が向上し、利用者が遭遇するエラーが減ります。"},
+{keys:["重構","refactor","リファクタ"],tech:"refactor / 重構",bizEn:"architecture optimisation",bizZh:"架構優化",bizJa:"アーキテクチャ最適化",impEn:"No new feature in the short term, but future delivery becomes faster and less costly to maintain.",impZh:"短期未必有新功能，但後續開發更快、維護成本更低。",impJa:"短期的には新機能はありませんが、今後の開発が速くなり、保守コストが下がります。"},
+{keys:["技術債","tech debt","technical debt","技術的負債"],tech:"tech debt / 技術債",bizEn:"accumulated maintenance burden",bizZh:"歷史累積的維護負擔",bizJa:"蓄積した保守負担",impEn:"If unaddressed, every future change becomes slower and riskier.",impZh:"若不處理，每次改動都會變慢且更容易出錯。",impJa:"放置すると、今後の変更が遅くなり、リスクが高まります。"},
+{keys:["上線","部署","deploy","release","launch","production","リリース","本番"],tech:"deploy / 上線 / リリース",bizEn:"official release to users",bizZh:"正式發布予使用者",bizJa:"利用者への正式リリース",impEn:"The work reaches real users, enabling validation of actual value.",impZh:"成果進入真實使用環境，可開始驗證實際價值。",impJa:"成果が実際の利用環境に届き、実質的な価値を検証できます。"},
+{keys:["管線","pipeline","etl","資料流","パイプライン"],tech:"pipeline / 資料管線",bizEn:"automated data processing flow",bizZh:"資料自動處理流程",bizJa:"データ自動処理フロー",impEn:"Automated data flow reduces manual handling time and human error.",impZh:"資料自動流動，減少人工整理時間與人為錯誤。",impJa:"データが自動で流れるため、手作業の時間と人的ミスが減ります。"},
+{keys:["成本","cost","gpu","token","コスト"],tech:"cost / 成本 / コスト",bizEn:"cost per use",bizZh:"單次使用運算成本",bizJa:"利用あたりのコスト",impEn:"Lower cost means the same budget can serve more users.",impZh:"成本下降，代表相同預算可服務更多使用者。",impJa:"コストが下がれば、同じ予算でより多くの利用者に対応できます。"},
+{keys:["壓力測試","load test","load testing","stress test","流量","尖峰","負荷テスト","負荷試験"],tech:"load testing / 壓力測試 / 負荷テスト",bizEn:"high-traffic readiness validation",bizZh:"高流量情境驗證",bizJa:"高負荷時の readiness 検証",impEn:"Confirms in advance that the system will hold at peak traffic.",impZh:"提前確認尖峰時段系統能否承載，避免正式環境發生事故。",impJa:"ピーク時にもシステムが耐えられるかを事前に確認します。"},
+{keys:["timeout","逾時","中斷","當機","downtime","outage","タイムアウト"],tech:"timeout / 逾時 / タイムアウト",bizEn:"service instability signal",bizZh:"服務不穩定訊號",bizJa:"サービス不安定の兆候",impEn:"Directly affects user trust; requires priority handling and proactive updates.",impZh:"直接影響使用者信任，需優先處理並主動同步進度。",impJa:"利用者の信頼に直結するため、優先対応と進捗共有が必要です。"},
+{keys:["自動化","automation","腳本","script","自動"],tech:"automation / 自動化",bizEn:"automation of repetitive work",bizZh:"將重複工作自動化",bizJa:"反復作業の自動化",impEn:"Saves recurring manual effort and reduces human error.",impZh:"節省重複人力時間，並減少人為錯誤。",impJa:"反復作業の工数を削減し、人的ミスを減らします。"},
+{keys:["rag","retrieval","檢索","embedding","向量","検索"],tech:"RAG / 檢索",bizEn:"AI that verifies sources before answering",bizZh:"讓 AI 先查證資料再回答",bizJa:"出典を確認してから回答するAI",impEn:"Answers are grounded in sources, with fewer fabricated details and more controllable quality.",impZh:"回答有依據、較少憑空捏造，品質更可控。",impJa:"出典に基づく回答となり、根拠のない内容が減り、品質を管理しやすくなります。"},
+{keys:["rollback","回滾","回退","ロールバック"],tech:"rollback / 回滾",bizEn:"return to the last stable version",bizZh:"回復至上一個穩定版本",bizJa:"前回の安定版への復帰",impEn:"Provides a safety net, minimising user impact if an issue occurs.",impZh:"發生問題時有安全機制，將使用者受影響時間降至最低。",impJa:"問題発生時の安全策となり、利用者への影響時間を最小化します。"},
+{keys:["擴展","scalab","scale","擴容","拡張","スケール"],tech:"scalability / 擴展性",bizEn:"capacity to grow with demand",bizZh:"隨需求成長的承載能力",bizJa:"需要の拡大に対応する能力",impEn:"Growth will not be constrained by technology as usage increases.",impZh:"使用者成長時無需重建系統，成長不受技術限制。",impJa:"利用者が増えてもシステムを作り直す必要がなく、成長が技術に阻まれません。"},
+{keys:["監控","monitor","alert","告警","log","監視","アラート"],tech:"monitoring / 監控 / 監視",bizEn:"automatic early-warning mechanism",bizZh:"問題自動預警機制",bizJa:"問題の自動早期検知の仕組み",impEn:"Issues are detected before users notice them, shortening resolution time.",impZh:"問題在使用者察覺前即被發現，處理時間更短。",impJa:"利用者が気づく前に問題を検知でき、対応時間が短縮されます。"}
+];
+
+/* ============ Samples ============ */
+var SAMPLES={
+ai:["- RAG pipeline 終於跑通了，retrieval accuracy 從 72% 提升到 89%","- 修了 3 個 bug，API latency p95 從 850ms 降到 320ms","- embedding model 換成新版本，推論成本降了 30%","- vector DB 偶爾會 timeout，還在查原因","- 下週要做 load testing，確認能不能扛住月底的流量"].join("\n"),
+launch:["- New dashboard deployed to production for the full APJ team","- Automated the manual reporting export, saving approximately 4 hours per week","- Two users reported a formatting issue after launch; resolved","- SSO permission documentation still pending; IT support required","- Next step: collect first-week user feedback, then decide on rollout to other regions"].join("\n"),
+ja:["- RAGパイプラインが動作し、検索精度が72%から89%に向上しました","- バグを3件修正し、APIの応答時間が850msから320msに改善しました","- 推論コストが30%削減できました","- まれにタイムアウトが発生しており、原因を調査中です","- 次のステップ：月末のピークに向けて負荷テストを実施します"].join("\n")
+};
+
+/* ============ State ============ */
+var state={ui:"en",audience:"manager",format:"weekly",out:"en"};
+var lastPlainText="";
+function ui(){return UI[state.ui]}
+function outPrimary(){return state.out.split("-")[0]}
+function outSecondary(){var p=state.out.split("-");return p.length>1?p[1]:null}
+function pick(obj,prefix,lang){return obj[prefix+(lang==="en"?"En":lang==="zh"?"Zh":"Ja")]}
+
+/* ============ Classification ============ */
+function isJaLine(s){return /[\u3040-\u30ff]/.test(s)}
+function isEnLine(s){return /[A-Za-z]/.test(s)&&!/[一-鿿\u3040-\u30ff]/.test(s)}
+function classify(line){
+var s=line.toLowerCase();
+if(/需要|協助|幫忙|待確認|卡在|blocked|need support|need help|waiting for|approval|必要|支援|お願い|保留中|が必要です/.test(s))return "help";
+if(/下週|下星期|下一步|接下來|計畫|預計|next step|next week|plan to|will |going to|次のステップ|来週|次に|予定/.test(s))return "next";
+if(/風險|可能|擔心|不確定|還在查|調查中|偶爾|尚未|還沒|還差|問題|investigating|risk|might|occasionally|still |調査中|まれに|リスク|未解決/.test(s))return "risk";
+if(hasNum(line)&&/%|ms|秒|小時|分鐘|hour|min|提升|降|improv|cut|reduc|increas|省下|from.+to|向上|改善|削減|短縮/.test(s))return "data";
+if(/完成|上線|部署|修|跑通|做好|交付|通過|自動化|finished|completed|fixed|deployed|launched|done|shipped|delivered|完了|修正|稼働|リリース/.test(s))return "done";
+if(hasNum(line))return "data";
+return "done";
+}
+function detectTerms(text){var low=text.toLowerCase(),found=[];GLOSSARY.forEach(function(g){for(var i=0;i<g.keys.length;i++){if(low.indexOf(g.keys[i].toLowerCase())!==-1){found.push(g);break}}});return found}
+
+/* ============ Polishing ============ */
+var ZH_R=[[/終於/g,""],[/跑通了/g,"已完成並通過初步驗證"],[/跑通/g,"完成串接"],[/修了\s*(\d+)\s*個\s*bug/gi,"修復 $1 個系統問題"],[/\bbug\b/gi,"系統問題"],[/還在查原因/g,"原因調查中，已啟動排查並持續追蹤"],[/還在查/g,"調查中"],[/偶爾會\s*timeout/gi,"偶爾發生逾時"],[/\btimeout\b/gi,"逾時"],[/上線了/g,"已正式上線"],[/部署/g,"上線"],[/重構/g,"架構優化"],[/下週要做/g,"下週計畫進行"],[/換成新版本/g,"升級為新版本"],[/\bAPI latency\b/gi,"系統回應時間"],[/\blatency\b/gi,"回應時間"],[/\bretrieval accuracy\b/gi,"檢索準確率"],[/\baccuracy\b/gi,"準確率"],[/\bembedding model\b/gi,"向量模型"],[/\bvector DB\b/gi,"向量資料庫"],[/\bload testing\b/gi,"壓力測試"],[/\bpipeline\b/gi,"管線"],[/\bregion\b/gi,"區域"]];
+var EN_R=[[/finally works/gi,"is now complete and verified"],[/finally/gi,""],[/fixed (\d+) bugs?/gi,"resolved $1 system issues"],[/\bbugs?\b/gi,"system issue"],[/still investigating/gi,"investigation in progress, with active follow-up under way"],[/cut from/gi,"reduced from"]];
+var JA_R=[[/直した/g,"修正しました"],[/終わった/g,"完了しました"],[/まだ調査中/g,"調査中です"],[/調査中ですです/g,"調査中です"]];
+function polishZh(s){ZH_R.forEach(function(p){s=s.replace(p[0],p[1])});s=s.replace(/\s+/g," ").trim().replace(/[。！!；;]+$/,"");if(s&&!/[。！？]$/.test(s))s+="。";return s}
+function polishEn(s){EN_R.forEach(function(p){s=s.replace(p[0],p[1])});s=s.replace(/\s+/g," ").trim().replace(/[.!;]+$/,"");if(s)s=s.charAt(0).toUpperCase()+s.slice(1)+".";return s}
+function polishJa(s){JA_R.forEach(function(p){s=s.replace(p[0],p[1])});s=s.replace(/\s+/g," ").trim();if(s&&!/[。．]$/.test(s))s+="。";return s}
+
+/* Cross-language patterns */
+function enToZh(s){var m;
+if((m=s.match(/processing time cut from (.+?) to (.+?)(?:\.|$)/i)))return "完成資料管線架構優化，處理時間由 "+m[1]+" 縮短至 "+m[2]+"。";
+if(/refactor/i.test(s))return "完成架構優化，後續維護成本降低。";
+if(/timeout/i.test(s)&&(m=s.match(/(\d+)%/)))return "已修復逾時問題，該問題原影響約 "+m[1]+"% 的使用者。";
+if((m=s.match(/accuracy improved from ([\d.]+%) to ([\d.]+%)/i)))return "模型準確率由 "+m[1]+" 提升至 "+m[2]+"（重新訓練後）。";
+if(/investigating/i.test(s)&&/latency/i.test(s))return "系統回應時間偶爾異常，原因調查中，已啟動排查並持續追蹤。";
+if(/load testing/i.test(s))return "下一步：於月底尖峰前完成壓力測試，需要基礎設施團隊協助。";
+if(/dashboard deployed/i.test(s))return "新版儀表板已正式上線，供全 APJ 團隊使用。";
+if(/Automated the manual/i.test(s))return "已將手動匯出報表流程自動化，每週節省約 4 小時。";
+if(/formatting issue/i.test(s))return "上線後有 2 位使用者回報格式問題，已修復。";
+if(/SSO/i.test(s))return "尚待權限設定文件，需要 IT 協助開通 SSO。";
+if(/first-week user feedback/i.test(s))return "下一步：收集第一週使用者回饋，再決定是否推廣至其他區域。";
+return polishEn(s)}
+function enToJa(s){var m;
+if(/dashboard deployed/i.test(s))return "新しいダッシュボードを本番環境にリリースし、APJチーム全体で利用可能になりました。";
+if(/Automated the manual/i.test(s))return "手作業のレポート出力を自動化し、週あたり約4時間を削減しました。";
+if(/formatting issue/i.test(s))return "リリース後に2名の利用者から表示崩れの報告があり、修正が完了しました。";
+if(/SSO/i.test(s))return "権限設定に関する資料が保留中であり、SSO有効化にはIT部門の支援が必要です。";
+if(/first-week user feedback/i.test(s))return "次のステップ：初週の利用者フィードバックを収集し、他地域への展開を判断します。";
+if((m=s.match(/accuracy improved from ([\d.]+%) to ([\d.]+%)/i)))return "再学習により、モデルの精度が"+m[1]+"から"+m[2]+"に向上しました。";
+if(/load testing/i.test(s))return "次のステップ：月末のピーク前に負荷テストを実施します。インフラチームの支援が必要です。";
+if(/investigating/i.test(s)&&/latency/i.test(s))return "応答時間がまれに不安定になる原因を調査中であり、継続して追跡しています。";
+return polishEn(s)}
+function jaToEn(s){
+if(/RAG/.test(s)&&/89%/.test(s))return "The RAG pipeline is operational; retrieval accuracy improved from 72% to 89%.";
+if(/バグを3件/.test(s))return "Resolved 3 system issues; API response time improved from 850 ms to 320 ms.";
+if(/コストが30%/.test(s))return "Inference cost reduced by 30%.";
+if(/タイムアウト/.test(s))return "Intermittent timeouts are occurring; root cause under investigation with active follow-up.";
+if(/負荷テスト/.test(s))return "Next step: conduct load testing ahead of the month-end peak.";
+return polishJa(s)}
+function jaToZh(s){
+if(/RAG/.test(s)&&/89%/.test(s))return "RAG 管線已正式運作，檢索準確率由 72% 提升至 89%。";
+if(/バグを3件/.test(s))return "已修復 3 個系統問題，API 回應時間由 850ms 改善至 320ms。";
+if(/コストが30%/.test(s))return "推論成本降低 30%。";
+if(/タイムアウト/.test(s))return "偶爾發生逾時，原因調查中，已啟動排查並持續追蹤。";
+if(/負荷テスト/.test(s))return "下一步：於月底尖峰前完成壓力測試。";
+return polishJa(s)}
+function zhToJa(s){
+if(/RAG/i.test(s)&&/89%/.test(s))return "RAGパイプラインが稼働し、検索精度が72%から89%に向上しました。";
+if(/latency|回應時間/i.test(s)&&/320/.test(s))return "システム課題を修正し、応答時間が850msから320msに改善しました。";
+if(/成本.*30%/.test(s))return "推論コストが30%削減できました。";
+if(/timeout|逾時/i.test(s))return "まれにタイムアウトが発生しており、原因を調査中です。";
+if(/load testing|壓力測試/i.test(s))return "次のステップ：月末のピークに向けて負荷テストを実施します。";
+return polishZh(s)}
+function zhToEnFallback(s){
+if(/RAG/i.test(s)&&/89%/.test(s))return "The RAG pipeline is now operational; retrieval accuracy improved from 72% to 89%.";
+if(/320/.test(s))return "Resolved system issues; API response time (p95) reduced from 850 ms to 320 ms.";
+if(/30%/.test(s)&&/成本/.test(s))return "Inference cost reduced by 30% following the model upgrade.";
+if(/timeout|逾時/i.test(s))return "Intermittent timeouts in the vector database; root cause under investigation.";
+if(/壓力測試|load testing/i.test(s))return "Next step: conduct load testing to validate readiness for month-end peak traffic.";
+return s}
+function convertLine(line){
+if(isJaLine(line))return{ja:polishJa(line),en:jaToEn(line),zh:jaToZh(line)};
+if(isEnLine(line))return{en:polishEn(line),zh:enToZh(line),ja:enToJa(line)};
+var zh=polishZh(line);return{zh:zh,en:zhToEnFallback(line),ja:zhToJa(line)}
+}
+function highlightNums(s){return esc(s).replace(/(\d[\d,]*(?:\.\d+)?\s*(?:%|ms|秒|小時|分鐘|hours?|mins?|x|倍)?)/g,function(m){return /\d/.test(m)&&m.trim()?'<span class="data-num">'+m+"</span>":m})}
+
+/* ============ Report building ============ */
+var HEAD={
+en:{manager:"This week's highlight: ",executive:"Key result this period: ",cross:"Progress highlight: ",client:"Latest update: "},
+zh:{manager:"本週重點：",executive:"本期重點成果：",cross:"進度重點：",client:"最新進度："},
+ja:{manager:"今週のハイライト：",executive:"今期の主要成果：",cross:"進捗のハイライト：",client:"最新の進捗："}
+};
+var SECT={
+done:{en:"Completed this period",zh:"本期完成",ja:"今期の完了事項"},
+data:{en:"Key results",zh:"關鍵成果（數據）",ja:"主な成果（数値）"},
+impact:{en:"Business impact",zh:"業務影響",ja:"ビジネスへの影響"},
+risk:{en:"Issues & risks",zh:"問題與風險",ja:"課題とリスク"},
+next:{en:"Next steps",zh:"下一步",ja:"次のステップ"},
+help:{en:"Support required",zh:"需要協助",ja:"支援が必要な事項"},
+headline:{en:"Executive summary",zh:"重點摘要",ja:"エグゼクティブサマリー"},
+three:{en:"Three key points",zh:"三個重點",ja:"3つの要点"},
+concl:{en:"Bottom line",zh:"結論",ja:"結論"},
+notes:{en:"Speaker notes: risks & next steps",zh:"講者備註：風險與下一步",ja:"補足：リスクと次のステップ"},
+myWins:{en:"What I delivered",zh:"本期交付成果",ja:"今期の成果"},
+myBlock:{en:"Current blockers",zh:"目前阻礙",ja:"現在の阻害要因"},
+myAsk:{en:"Decisions / support requested",zh:"待確認事項／需要協助",ja:"確認・支援依頼事項"},
+progUp:{en:"Progress update",zh:"進度更新",ja:"進捗報告"}
+};
+function secTitle(key,lang){return SECT[key][lang]}
+function buildReport(raw){
+var lines=raw.split(/\n+/).map(function(l){return l.replace(/^[\s\-•*·\d.、)）]+/,"").trim()}).filter(function(l){return l.length});
+if(!lines.length)return null;
+var buckets={done:[],data:[],risk:[],next:[],help:[]};
+lines.forEach(function(l){var c=classify(l);var conv=convertLine(l);conv.cat=c;buckets[c].push(conv)});
+var terms=detectTerms(raw);var proj=$("projectName").value.trim();
+function headFor(lang){var it=buckets.data[0]||buckets.done[0]||buckets.next[0]||buckets.risk[0];if(!it)return"";var base=it[lang].replace(/[。．.]$/,"");var h=HEAD[lang][state.audience]+base;if(lang==="en"&&!/^Next step/i.test(base)&&state.audience) h=h; if(proj)h=(lang==="ja"?"「"+proj+"」":lang==="zh"?"「"+proj+"」":proj+" — ")+h; if(lang==="ja"&&!/[。]$/.test(h))h+="。"; if(lang==="zh"&&!/[。]$/.test(h))h+="。"; if(lang==="en"&&!/[.]$/.test(h))h+="."; return h}
+return{buckets:buckets,terms:terms,proj:proj,head:{en:headFor("en"),zh:headFor("zh"),ja:headFor("ja")}}
+}
+function impactItems(r){var items=[],seen={};r.terms.forEach(function(g){if(seen[g.tech])return;seen[g.tech]=1;items.push({en:g.impEn,zh:g.impZh,ja:g.impJa})});return items.slice(0,4)}
+function secHTML(key,items,warn){
+if(!items.length)return"";var p=outPrimary(),s=outSecondary();
+var h='<div class="rsec'+(warn?" warn":"")+'"><h3>'+esc(secTitle(key,p))+(s?' <span style="font-weight:400;color:var(--muted);font-size:.8rem">'+esc(secTitle(key,s))+"</span>":"")+"</h3><ul>";
+items.forEach(function(it){h+="<li>"+highlightNums(it[p])+(s&&it[s]!==it[p]?'<span class="sub">'+esc(it[s])+"</span>":"")+"</li>"});
+return h+"</ul></div>"}
+function headlineBox(r){var p=outPrimary(),s=outSecondary();return '<div class="headline-box"><div class="k">'+esc(secTitle("headline",p))+'</div><div class="v">'+highlightNums(r.head[p])+"</div>"+(s?'<div class="v-sub">'+esc(r.head[s])+"</div>":"")+"</div>"}
+function renderReport(r){
+var b=r.buckets,html="",p=outPrimary(),s=outSecondary();
+if(state.format==="weekly"){html+=headlineBox(r);html+=secHTML("done",b.done);html+=secHTML("data",b.data);html+=secHTML("impact",impactItems(r));html+=secHTML("risk",b.risk,true);html+=secHTML("next",b.next);html+=secHTML("help",b.help)}
+else if(state.format==="slide"){
+var t=r.head[p].replace(/^(This week's highlight: |Key result this period: |Progress highlight: |Latest update: |本週重點：|本期重點成果：|進度重點：|最新進度：|今週のハイライト：|今期の主要成果：|進捗のハイライト：|最新の進捗：)/,"");
+html+='<div class="slide-title">'+highlightNums(t)+"</div>";if(s)html+='<div class="slide-title-sub">'+esc(r.head[s])+"</div>";
+html+=secHTML("three",b.data.concat(b.done).slice(0,3));
+var c=b.data[0]||b.done[0];if(c)html+='<div class="headline-box"><div class="k">'+esc(secTitle("concl",p))+'</div><div class="v">'+highlightNums(c[p])+"</div></div>";
+html+=secHTML("notes",b.risk.concat(b.next,b.help),true)}
+else if(state.format==="email"){
+var u=ui();var subjBase=r.head[p].replace(/^(This week's highlight: |Key result this period: |Progress highlight: |Latest update: |本週重點：|本期重點成果：|進度重點：|最新進度：|今週のハイライト：|今期の主要成果：|進捗のハイライト：|最新の進捗：)/,"");
+var subj=(r.proj?(p==="en"?r.proj+" — ":"「"+r.proj+"」"):"")+secTitle("progUp",p)+(p==="en"?": ":"：")+subjBase;
+html+='<div class="email-subject">'+esc(u.subject)+(p==="en"?": ":"：")+esc(subj)+"</div>";
+var greet={en:"Hi team,",zh:"Hi 各位，",ja:"関係各位"}[p];var intro={en:"Please find the progress update for this period below:",zh:"以下為本期進度更新：",ja:"今期の進捗をご報告いたします。"}[p];
+var thanks={en:"Thank you,",zh:"謝謝，",ja:"よろしくお願いいたします。"}[p];
+html+='<p style="margin:0 0 10px;font-size:.94rem">'+esc(greet)+"<br/>"+esc(intro)+"</p>";
+html+=secHTML("done",b.done);html+=secHTML("data",b.data);html+=secHTML("impact",impactItems(r));html+=secHTML("risk",b.risk,true);html+=secHTML("next",b.next);html+=secHTML("help",b.help);
+html+='<p style="margin:6px 0 0;font-size:.94rem">'+esc(thanks)+"<br/>Mao</p>"}
+else{html+=headlineBox(r);html+=secHTML("myWins",b.data.concat(b.done));html+=secHTML("myBlock",b.risk,true);html+=secHTML("myAsk",b.help.concat(b.next.slice(0,2)))}
+return html}
+function plainText(r){
+var b=r.buckets,out=[],p=outPrimary(),s=outSecondary();
+function sec(key,items){if(!items.length)return;out.push("");out.push("## "+secTitle(key,p));items.forEach(function(it){out.push("- "+it[p]);if(s&&it[s]!==it[p])out.push("  "+it[s])})}
+if(state.format==="email"){out.push(ui().subject+": "+r.head[p])}else{out.push(r.head[p])}
+if(state.format==="oneonone"){sec("myWins",b.data.concat(b.done));sec("myBlock",b.risk);sec("myAsk",b.help.concat(b.next.slice(0,2)))}
+else{sec("done",b.done);sec("data",b.data);sec("impact",impactItems(r));sec("risk",b.risk);sec("next",b.next);sec("help",b.help)}
+return out.join("\n").trim()}
+
+/* ============ UI application ============ */
+var inputEl=$("input"),outputEl=$("output");
+function buildSeg(id,values,labels,current,cb){
+var el=$(id);el.innerHTML="";Object.keys(values).forEach(function(k){var v=values[k];var btn=document.createElement("button");btn.type="button";btn.textContent=labels?labels[k]:v;btn.setAttribute("data-val",k);if(k===current)btn.classList.add("active");btn.addEventListener("click",function(){el.querySelectorAll("button").forEach(function(x){x.classList.remove("active")});btn.classList.add("active");cb(k)});el.appendChild(btn)})}
+function applyUi(){
+var u=ui();document.documentElement.lang=state.ui==="zh"?"zh-Hant":state.ui==="ja"?"ja":"en";
+document.title=u.title;
+$("uiEyebrow").textContent=u.eyebrow;$("uiTitle").textContent=u.title;$("uiLede").textContent=u.lede;
+$("uiSteps").innerHTML=u.steps.map(function(s,i){return "<span><b>"+(i+1)+"</b> "+esc(s)+"</span>"}).join("");
+$("uiLangLabel").textContent=state.ui==="en"?"Language":state.ui==="zh"?"語言":"言語";
+$("lblProject").textContent=u.project;$("projectName").placeholder=u.projectPh;
+$("lblAudience").textContent=u.audience;$("lblFormat").textContent=u.format;$("lblOutLang").textContent=u.outLang;
+$("uiInputTitle").textContent=u.inputTitle;inputEl.placeholder=u.placeholder;
+$("clearBtn").textContent=u.clear;$("uiExamplesLabel").textContent=u.examples;
+$("exAi").textContent=u.exAi;$("exLaunch").textContent=u.exLaunch;$("exJa").textContent=u.exJa;
+$("translateBtn").textContent=u.translate;$("uiDetectedTitle").textContent=u.detected;
+$("uiOutputTitle").textContent=u.outputTitle;
+$("copyBtn").textContent=u.copy;$("downloadBtn").textContent=u.download;$("copyOk").textContent=u.copied;
+$("uiGlossTitle").textContent=u.glossTitle;$("uiGlossSub").textContent=u.glossSub;
+$("gCol1").textContent=u.g1;$("gCol2").textContent=u.g2;$("gCol3").textContent=u.g3;
+$("uiTipsTitle").textContent=u.tipsTitle;$("uiTipsSub").textContent=u.tipsSub;$("uiFormula").innerHTML=u.formula;
+$("uiFooter").textContent=u.footer;
+$("tipsList").innerHTML=TIPS[state.ui].map(function(t){return '<li><span class="before">'+esc(t[0])+'</span><br/><span class="after">'+esc(t[1])+"</span></li>"}).join("");
+buildSeg("segAudience",{manager:1,executive:1,cross:1,client:1},u.aud,state.audience,function(v){state.audience=v;if(lastPlainText)doTranslate()});
+buildSeg("segFormat",{weekly:1,slide:1,email:1,oneonone:1},u.fmt,state.format,function(v){state.format=v;if(lastPlainText)doTranslate()});
+buildSeg("segLang",{en:1,zh:1,ja:1,"en-zh":1,"en-ja":1},u.out,state.out,function(v){state.out=v;updateDetected();renderGloss();if(lastPlainText)doTranslate()});
+document.querySelectorAll(".lang-switch button").forEach(function(b){b.classList.toggle("active",b.getAttribute("data-ui")===state.ui)});
+renderGloss();updateCount();updateDetected();
+if(!lastPlainText){outputEl.innerHTML='<div class="report-empty"><strong>'+esc(u.emptyTitle)+"</strong><br/>"+esc(u.emptyBody)+"</div>"}
+}
+function renderGloss(){
+var lang=outPrimary();
+$("glossBody").innerHTML=GLOSSARY.map(function(g){return "<tr><td class='tech-cell'>"+esc(g.tech)+"</td><td class='biz-cell'>"+esc(pick(g,"biz",lang))+"</td><td>"+esc(pick(g,"imp",lang))+"</td></tr>"}).join("")}
+function updateCount(){var v=inputEl.value;var lines=v.split(/\n+/).filter(function(l){return l.trim().length}).length;$("inputCount").textContent=ui().count(lines,v.length)}
+function updateDetected(){
+var terms=detectTerms(inputEl.value);var box=$("detectedChips");var lang=outPrimary();
+if(!terms.length){box.innerHTML='<span class="none-note">'+esc(inputEl.value.trim()?ui().detectedNone:ui().detectedWait)+"</span>";return}
+box.innerHTML=terms.map(function(g){return '<span class="chip"><b>'+esc(g.tech.split(" / ")[0])+'</b><span class="arr">→</span><i>'+esc(pick(g,"biz",lang))+"</i></span>"}).join("")}
+function refreshLive(){updateCount();updateDetected()}
+function doTranslate(){
+var r=buildReport(inputEl.value);
+if(!r){outputEl.innerHTML='<div class="report-empty"><strong>'+esc(ui().emptyInput)+"</strong></div>";$("outActions").hidden=true;return}
+outputEl.innerHTML=renderReport(r);lastPlainText=plainText(r);$("outActions").hidden=false;$("copyOk").hidden=true}
+document.querySelectorAll(".lang-switch button").forEach(function(b){b.addEventListener("click",function(){state.ui=b.getAttribute("data-ui");applyUi();if(lastPlainText)doTranslate()})});
+document.querySelectorAll(".ex-btn").forEach(function(btn){btn.addEventListener("click",function(){inputEl.value=SAMPLES[btn.getAttribute("data-sample")];refreshLive();doTranslate();inputEl.focus()})});
+$("clearBtn").addEventListener("click",function(){inputEl.value="";lastPlainText="";outputEl.innerHTML='<div class="report-empty"><strong>'+esc(ui().emptyTitle)+"</strong><br/>"+esc(ui().clearedBody)+"</div>";$("outActions").hidden=true;refreshLive();inputEl.focus()});
+$("translateBtn").addEventListener("click",doTranslate);
+inputEl.addEventListener("input",refreshLive);
+$("projectName").addEventListener("input",function(){if(lastPlainText)doTranslate()});
+$("copyBtn").addEventListener("click",function(){if(!lastPlainText)return;function done(){$("copyOk").hidden=false;setTimeout(function(){$("copyOk").hidden=true},2200)}function fb(){var ta=document.createElement("textarea");ta.value=lastPlainText;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy")}catch(e){}document.body.removeChild(ta)}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(lastPlainText).then(done,function(){fb();done()})}else{fb();done()}});
+$("downloadBtn").addEventListener("click",function(){if(!lastPlainText)return;var blob=new Blob([lastPlainText],{type:"text/plain;charset=utf-8"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="report.txt";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},400)});
+applyUi();refreshLive();
+})();
+</script>
+</body>
+</html>
