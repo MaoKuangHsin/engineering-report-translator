@@ -105,6 +105,8 @@ textarea{width:100%;min-height:240px;resize:vertical;font-family:"JetBrains Mono
 .tips .before{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:var(--tech)}
 .tips .after{color:var(--biz);font-weight:500}
 footer.note{margin-top:26px;color:var(--muted);font-size:.8rem;text-align:center}
+.site-credit{margin-top:16px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:.8rem;line-height:1.6;text-align:center;letter-spacing:.01em}
+.site-credit strong{color:var(--ink);font-weight:600}
 @media print{.controls,.examples,.translate-row,.out-actions,.lang-switch,.no-print{display:none!important}body{background:#fff}}
 </style>
 </head>
@@ -167,6 +169,7 @@ footer.note{margin-top:26px;color:var(--muted);font-size:.8rem;text-align:center
     <section class="card"><h2 id="uiTipsTitle"></h2><p class="card-sub" id="uiTipsSub"></p><div class="formula" id="uiFormula"></div><ul class="tips" id="tipsList"></ul></section>
   </div>
   <footer class="note" id="uiFooter"></footer>
+  <footer class="site-credit" id="uiCredit"></footer>
 </div>
 <script>
 (function(){
@@ -196,6 +199,7 @@ copy:"Copy report",download:"Download .txt",copied:"Copied ✓",
 glossTitle:"Terminology reference",glossSub:"How technical language is reframed for a business audience.",g1:"Engineers say",g2:"Report as",g3:"Business implication",
 tipsTitle:"Reporting standard",tipsSub:"The order senior stakeholders expect to read.",formula:'What was delivered <span>+</span> Quantified result <span>+</span> Impact on whom',
 footer:"All conversion runs locally in your browser. No content is sent to a server.",
+credit:"© 2026 Cindy Mao. All Rights Reserved.",
 count:function(l,c){return l+" lines · "+c+" characters"},
 greeting:"Hi team,",intro:"Please find this period’s progress update below:",thanks:"Thank you,",sign:"Mao",subject:"Subject"},
 zh:{eyebrow:"職場報告工具",title:"工程師報告翻譯器",
@@ -217,6 +221,7 @@ copy:"複製報告",download:"下載 .txt",copied:"已複製 ✓",
 glossTitle:"術語對照表",glossSub:"技術語言如何改寫為業務受眾能理解的表達。",g1:"工程師說法",g2:"報告寫法",g3:"業務意涵",
 tipsTitle:"報告撰寫標準",tipsSub:"高階主管期望的閱讀順序。",formula:'完成事項 <span>+</span> 量化成果 <span>+</span> 對誰產生什麼影響',
 footer:"所有轉換均在本機瀏覽器完成，內容不會傳送至任何伺服器。",
+credit:"© 2026 Cindy Mao。版權所有。",
 count:function(l,c){return l+" 行 · "+c+" 字"},
 greeting:"Hi 各位，",intro:"以下為本期進度更新：",thanks:"謝謝，",sign:"Mao",subject:"主旨"},
 ja:{eyebrow:"業務報告作成ツール",title:"エンジニア報告トランスレーター",
@@ -238,6 +243,7 @@ copy:"報告書をコピー",download:".txt をダウンロード",copied:"コ�
 glossTitle:"用語対照表",glossSub:"技術用語をビジネス向けの表現に置き換えるための対照表です。",g1:"技術用語",g2:"報告書での表現",g3:"ビジネス上の意味",
 tipsTitle:"報告の標準構成",tipsSub:"経営層が期待する提示順序です。",formula:'実施内容 <span>+</span> 数値による成果 <span>+</span> 誰への影響',
 footer:"変換はすべてお使いのブラウザ内で処理され、内容がサーバーに送信されることはありません。",
+credit:"© 2026 Cindy Mao。全権利留保。",
 count:function(l,c){return l+" 行 · "+c+" 文字"},
 greeting:"関係各位",intro:"今期の進捗をご報告いたします。",thanks:"よろしくお願いいたします。",sign:"Mao",subject:"件名"}
 };
@@ -461,6 +467,7 @@ $("uiGlossTitle").textContent=u.glossTitle;$("uiGlossSub").textContent=u.glossSu
 $("gCol1").textContent=u.g1;$("gCol2").textContent=u.g2;$("gCol3").textContent=u.g3;
 $("uiTipsTitle").textContent=u.tipsTitle;$("uiTipsSub").textContent=u.tipsSub;$("uiFormula").innerHTML=u.formula;
 $("uiFooter").textContent=u.footer;
+$("uiCredit").textContent=u.credit;
 $("tipsList").innerHTML=TIPS[state.ui].map(function(t){return '<li><span class="before">'+esc(t[0])+'</span><br/><span class="after">'+esc(t[1])+"</span></li>"}).join("");
 buildSeg("segAudience",{manager:1,executive:1,cross:1,client:1},u.aud,state.audience,function(v){state.audience=v;if(lastPlainText)doTranslate()});
 buildSeg("segFormat",{weekly:1,slide:1,email:1,oneonone:1},u.fmt,state.format,function(v){state.format=v;if(lastPlainText)doTranslate()});
